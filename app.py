@@ -428,6 +428,23 @@ with st.sidebar:
     st.caption("Built for Mavenir GET Assessment • RAG with near-zero hallucination")
 
 
+# ── Auto-setup for Streamlit Cloud ────────────────────────────
+# If the ChromaDB index doesn't exist yet, download specs and ingest them.
+import os
+
+# Pull GROQ_API_KEY from Streamlit secrets if available (for Cloud deployment)
+if hasattr(st, "secrets") and "GROQ_API_KEY" in st.secrets:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+if hasattr(st, "secrets") and "GROQ_MODEL" in st.secrets:
+    os.environ["GROQ_MODEL"] = st.secrets["GROQ_MODEL"]
+
+CHROMA_DIR = os.path.join("data", "chroma_db")
+if not os.path.exists(CHROMA_DIR) or not os.listdir(CHROMA_DIR):
+    with st.spinner("🔄 First-time setup: downloading 3GPP specs..."):
+        import download_specs
+    with st.spinner("🔄 Indexing specs into vector database (this may take a few minutes)..."):
+        import ingest
+
 # ── Load pipeline ────────────────────────────────────────────
 @st.cache_resource
 def load_pipeline():
